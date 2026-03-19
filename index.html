@@ -108,23 +108,37 @@
   <div class="fnote">마지막 업데이트: <span id="lupd">—</span> · 가격은 VAT 포함 공급가 기준</div>
 </div>
 
-<script>
-const LS_DATA = 'ng-data';
-const LS_CATS = 'ng-cats';
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBLtR1pQsnrl4AJIsy1xkOu68l_jVbAo64",
+  authDomain: "pricelist-61f5f.firebaseapp.com",
+  projectId: "pricelist-61f5f",
+  storageBucket: "pricelist-61f5f.firebasestorage.app",
+  messagingSenderId: "1012022631154",
+  appId: "1:1012022631154:web:0fb466191ed26c2f2b4e6b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
 const DEF_CATS = ['스위치','라우터','AP','방화벽','서버','케이블/기타'];
 const DEF_DATA = [
-  {id:1, model:'Cisco C9200L-24T-4G',  cat:'스위치',    price:1250000, status:'재고있음'},
-  {id:2, model:'Cisco C9200L-48T-4G',  cat:'스위치',    price:2100000, status:'재고있음'},
-  {id:3, model:'Cisco ISR 4331',        cat:'라우터',    price:3450000, status:'소량재고'},
-  {id:4, model:'Cisco ISR 4351',        cat:'라우터',    price:5200000, status:'재고있음'},
-  {id:5, model:'Cisco Catalyst 9120',   cat:'AP',       price:680000,  status:'재고있음'},
-  {id:6, model:'Ubiquiti UAP-AC-PRO',   cat:'AP',       price:245000,  status:'재고있음'},
-  {id:7, model:'Fortinet FG-60F',       cat:'방화벽',    price:1890000, status:'소량재고'},
-  {id:8, model:'Fortinet FG-100F',      cat:'방화벽',    price:4350000, status:'재고있음'},
-  {id:9, model:'Palo Alto PA-220',      cat:'방화벽',    price:2750000, status:'품절'},
-  {id:10,model:'Dell EMC R350',         cat:'서버',      price:4980000, status:'재고있음'},
-  {id:11,model:'HP ProLiant DL360 G10', cat:'서버',      price:7200000, status:'소량재고'},
-  {id:12,model:'AMP CAT6A UTP 305M',    cat:'케이블/기타',price:98000,  status:'재고있음'},
+  {id:1,model:'Cisco C9200L-24T-4G',cat:'스위치',price:1250000,status:'재고있음'},
+  {id:2,model:'Cisco C9200L-48T-4G',cat:'스위치',price:2100000,status:'재고있음'},
+  {id:3,model:'Cisco ISR 4331',cat:'라우터',price:3450000,status:'소량재고'},
+  {id:4,model:'Cisco ISR 4351',cat:'라우터',price:5200000,status:'재고있음'},
+  {id:5,model:'Cisco Catalyst 9120',cat:'AP',price:680000,status:'재고있음'},
+  {id:6,model:'Ubiquiti UAP-AC-PRO',cat:'AP',price:245000,status:'재고있음'},
+  {id:7,model:'Fortinet FG-60F',cat:'방화벽',price:1890000,status:'소량재고'},
+  {id:8,model:'Fortinet FG-100F',cat:'방화벽',price:4350000,status:'재고있음'},
+  {id:9,model:'Palo Alto PA-220',cat:'방화벽',price:2750000,status:'품절'},
+  {id:10,model:'Dell EMC R350',cat:'서버',price:4980000,status:'재고있음'},
+  {id:11,model:'HP ProLiant DL360 G10',cat:'서버',price:7200000,status:'소량재고'},
+  {id:12,model:'AMP CAT6A UTP 305M',cat:'케이블/기타',price:98000,status:'재고있음'},
 ];
 const PAL=[
   {c:'#00d4ff',b:'rgba(0,212,255,.3)',g:'rgba(0,212,255,.07)'},
@@ -141,21 +155,16 @@ let DATA=[],CATS=[],sortCol=null,sortDir=1,filterCat='all';
 const fmt=n=>n.toLocaleString('ko-KR')+' 원';
 const palOf=c=>PAL[(CATS.indexOf(c)<0?0:CATS.indexOf(c))%PAL.length];
 
-function load(){
-  try{DATA=JSON.parse(localStorage.getItem(LS_DATA))||DEF_DATA.map(d=>({...d}));}catch{DATA=DEF_DATA.map(d=>({...d}));}
-  try{CATS=JSON.parse(localStorage.getItem(LS_CATS))||[...DEF_CATS];}catch{CATS=[...DEF_CATS];}
-  DATA.forEach(d=>{if(d.category&&!d.cat){d.cat=d.category;delete d.category;}});
-}
 function renderFilters(){
-  const row=document.getElementById('frow'); row.innerHTML='';
+  const row=document.getElementById('frow');row.innerHTML='';
   const mk=(label,val)=>{const b=document.createElement('button');b.className='fbtn'+(filterCat===val?' on':'');b.textContent=label;b.onclick=()=>{filterCat=val;renderFilters();render();};row.appendChild(b);};
-  mk('ALL','all'); CATS.forEach(c=>mk(c,c));
+  mk('ALL','all');CATS.forEach(c=>mk(c,c));
 }
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   let rows=DATA.filter(d=>(filterCat==='all'||d.cat===filterCat)&&(!q||d.model.toLowerCase().includes(q)));
   if(sortCol){rows=[...rows].sort((a,b)=>{if(sortCol==='price')return(a.price-b.price)*sortDir;const va=sortCol==='cat'?(a.cat||''):(a[sortCol]||'');const vb=sortCol==='cat'?(b.cat||''):(b[sortCol]||'');return va.localeCompare(vb,'ko')*sortDir;});}
-  const tb=document.getElementById('tbody'); tb.innerHTML='';
+  const tb=document.getElementById('tbody');tb.innerHTML='';
   if(!rows.length){tb.innerHTML='<tr class="nores"><td colspan="5">검색 결과가 없어요 🔍</td></tr>';return;}
   rows.forEach((d,i)=>{const p=palOf(d.cat);const tr=document.createElement('tr');tr.style.animationDelay=(i*25)+'ms';
     tr.innerHTML=`<td class="cnum">${String(i+1).padStart(2,'0')}</td><td class="cmodel">${d.model}</td><td><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td><td class="cstat"><span class="dot ${DMAP[d.status]||'doff'}" title="${d.status}"></span></td><td class="cprice">${fmt(d.price)}</td>`;
@@ -167,10 +176,20 @@ function render(){
 }
 document.querySelectorAll('thead th[data-sort]').forEach(th=>{th.onclick=()=>{const col=th.dataset.sort;sortDir=sortCol===col?-sortDir:1;sortCol=col;document.querySelectorAll('thead th').forEach(t=>{t.classList.remove('sorted');if(t.querySelector('.si'))t.querySelector('.si').textContent='↕';});th.classList.add('sorted');th.querySelector('.si').textContent=sortDir===1?'↑':'↓';render();};});
 document.getElementById('search').oninput=()=>render();
-load(); renderFilters();
-document.getElementById('loading').classList.add('hide');
-render();
-setInterval(()=>{load();renderFilters();render();},30000);
+
+// Firestore 실시간 구독 — 데이터 변경 시 자동 반영
+onSnapshot(doc(db,'pricelist','data'), snap=>{
+  if(snap.exists()){
+    const d=snap.data();
+    DATA=d.items||DEF_DATA;
+    CATS=d.cats||DEF_CATS;
+  } else {
+    DATA=DEF_DATA.map(d=>({...d}));
+    CATS=[...DEF_CATS];
+  }
+  renderFilters();render();
+  document.getElementById('loading').classList.add('hide');
+});
 </script>
 </body>
 </html>
