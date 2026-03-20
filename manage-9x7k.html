@@ -539,8 +539,8 @@ document.getElementById('xl-file').onchange=function(){
       const keys=Object.keys(rows[0]),fk=(...c)=>keys.find(k=>c.some(x=>k.toLowerCase().includes(x.toLowerCase())))||'';
       const kModel=fk('model','모델'),kCat=fk('cat','category','카테고리'),kPrice=fk('price','가격','공급가'),kStatus=fk('status','재고');
       if(!kModel||!kPrice){toast('model / price 열을 찾을 수 없습니다.','ng');return;}
-      _upRows=[];const warns=[];
-      rows.forEach((r,i)=>{const model=String(r[kModel]||'').trim(),cat=String(r[kCat]||'').trim()||(CATS[0]||'기타'),price=parseInt(String(r[kPrice]).replace(/[^0-9]/g,''))||0,status=['재고있음','소량재고','품절'].includes(String(r[kStatus]).trim())?String(r[kStatus]).trim():'재고있음';if(!model){warns.push(`${i+2}행: 모델명 없음`);return;}if(!price){warns.push(`${i+2}행: 가격 없음`);return;}if(!CATS.includes(cat))CATS.push(cat);_upRows.push({id:_uid++,model,cat,price,status});});
+      _upRows=[];const warns=[];const _newCatsFromFile=[];
+      rows.forEach((r,i)=>{const model=String(r[kModel]||'').trim(),catRaw=String(r[kCat]||'').trim(),cat=catRaw||(CATS[0]||'기타'),price=parseInt(String(r[kPrice]).replace(/[^0-9]/g,''))||0,status=['재고있음','소량재고','품절'].includes(String(r[kStatus]).trim())?String(r[kStatus]).trim():'재고있음';if(!model){warns.push(`${i+2}행: 모델명 없음`);return;}if(!price){warns.push(`${i+2}행: 가격 없음`);return;}if(!CATS.includes(cat)&&!_newCatsFromFile.includes(cat))_newCatsFromFile.push(cat);_upRows.push({id:_uid++,model,cat,price,status});});
       document.getElementById('up-preview').innerHTML=`<div style="padding:12px 16px;border-radius:8px;background:var(--surface);border:1px solid var(--border2)"><div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:6px">파일: <span style="color:var(--text)">${file.name}</span></div><div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;color:var(--accent3)">${_upRows.length}개 항목</div></div>${warns.length?`<div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);font-family:'JetBrains Mono',monospace;font-size:11px;color:#fbbf24">${warns.slice(0,5).join('<br>')}</div>`:''}`;
       document.getElementById('up-err').textContent='';
       const sel=document.getElementById('up-cat');sel.innerHTML='<option value="">-- 엑셀 파일의 카테고리 열 사용 --</option>';CATS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});sel.value='';
@@ -552,11 +552,12 @@ document.getElementById('xl-file').onchange=function(){
 window.confirmUpload=async function(){
   if(!_upRows.length){closeM('m-upload');return;}
   const mode=document.querySelector('input[name="upmode"]:checked').value,forceCat=document.getElementById('up-cat').value;
-  if(forceCat)_upRows.forEach(r=>r.cat=forceCat);
+  if(forceCat){_upRows.forEach(r=>r.cat=forceCat);if(!CATS.includes(forceCat))CATS.push(forceCat);}
+  else{_upRows.forEach(r=>{if(!CATS.includes(r.cat))CATS.push(r.cat);});}
   if(mode==='cat-replace'){const uploadCats=new Set(_upRows.map(r=>r.cat));DATA=DATA.filter(d=>!uploadCats.has(d.cat));DATA=[...DATA,..._upRows];toast(`카테고리 교체 완료 ✓`);}
   else if(mode==='replace'){DATA=_upRows;toast(`${DATA.length}개 항목으로 전체 교체 완료 ✓`);}
   else{const ex=new Set(DATA.map(d=>d.model.toLowerCase()));const added=_upRows.filter(r=>!ex.has(r.model.toLowerCase()));DATA=[...DATA,...added];toast(`${added.length}개 추가 완료 ✓`);}
-  await saveData();closeM('m-upload');_upRows=[];renderFilters();fillCatSel();
+  await saveData();closeM('m-upload');_upRows=[];renderFilters();fillCatSel();render();
 };
 
 /* ════════════════════════════════════════
