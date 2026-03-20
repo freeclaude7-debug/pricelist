@@ -511,7 +511,7 @@ function buildCatList(){
 }
 window.addCat=async function(){const inp=document.getElementById('cat-in'),err=document.getElementById('cat-err'),name=inp.value.trim();if(!name){err.textContent='카테고리 이름을 입력해주세요.';return;}if(CATS.includes(name)){err.textContent='이미 존재하는 카테고리입니다.';return;}CATS.push(name);await saveData();inp.value='';err.textContent='';buildCatList();renderFilters();fillCatSel();toast(`'${name}' 카테고리 추가 ✓`);};
 document.getElementById('cat-in').onkeydown=e=>{if(e.key==='Enter')window.addCat();};
-async function delCat(i){const cat=CATS[i],used=DATA.filter(d=>d.cat===cat).length;if(!confirm(used>0?`'${cat}' 삭제 시 제품 ${used}개가 첫 번째 카테고리로 이동됩니다. 계속할까요?`:`'${cat}' 카테고리를 삭제할까요?`))return;const rest=CATS.filter((_,j)=>j!==i);if(used>0&&rest.length>0){DATA.forEach(d=>{if(d.cat===cat)d.cat=rest[0];});}CATS.splice(i,1);if(filterCat===cat)filterCat='all';await saveData();buildCatList();renderFilters();fillCatSel();render();toast(`'${cat}' 삭제 완료`);}
+async function delCat(i){const cat=CATS[i],used=DATA.filter(d=>d.cat===cat).length;if(!confirm(used>0?`'${cat}' 카테고리를 삭제하면 포함된 제품 ${used}개도 함께 삭제됩니다. 계속할까요?`:`'${cat}' 카테고리를 삭제할까요?`))return;if(used>0){DATA=DATA.filter(d=>d.cat!==cat);}CATS.splice(i,1);if(filterCat===cat)filterCat='all';await saveData();buildCatList();renderFilters();fillCatSel();render();toast(`'${cat}' 카테고리 및 제품 ${used}개 삭제 완료`);}
 
 // 제품 추가/수정/삭제
 window.openAddM=function(){editId=null;document.getElementById('item-title').textContent='제품 추가';document.getElementById('f-model').value='';document.getElementById('f-price').value='';fillCatSel();document.getElementById('f-status').value='재고있음';openM('m-item');};
