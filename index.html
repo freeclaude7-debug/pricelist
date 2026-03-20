@@ -162,13 +162,19 @@
   .cnum { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); width: 48px; }
   .cmodel { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: clamp(12px,1.4vw,14px); }
   .cprice { font-family: 'Syne', sans-serif; font-size: clamp(13px,1.5vw,15px); font-weight: 700; color: var(--accent2); text-align: right; white-space: nowrap; }
-  .cstat { text-align: center; }
+  .cstat { text-align: left; white-space: nowrap; }
   .cact { text-align: right; white-space: nowrap; }
   .tag { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: .06em; border: 1px solid; }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
   .don { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
   .dlow { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,.6); }
   .doff { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,.5); }
+  .dinq { background: #a78bfa; box-shadow: 0 0 8px rgba(167,139,250,.6); }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; font-weight: 500; white-space: nowrap; }
+  .sbg-don  { color: var(--accent2); }
+  .sbg-dlow { color: #fbbf24; }
+  .sbg-doff { color: #f87171; }
+  .sbg-dinq { color: #a78bfa; }
   .nores td { text-align: center; padding: 56px; color: var(--muted); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
 
   /* 담기 버튼 */
@@ -367,9 +373,9 @@
 
   <!-- 통계 -->
   <div class="stats">
-    <div class="stat"><div class="stat-l">Total Items</div><div class="stat-v" id="s-total">—</div></div>
-    <div class="stat"><div class="stat-l">In Stock</div><div class="stat-v" id="s-stock">—</div></div>
-    <div class="stat"><div class="stat-l">Categories</div><div class="stat-v" id="s-cats">—</div></div>
+    <div class="stat"><div class="stat-l">전체 항목</div><div class="stat-v" id="s-total">—</div></div>
+    <div class="stat"><div class="stat-l">재고있음</div><div class="stat-v" id="s-stock">—</div></div>
+    <div class="stat"><div class="stat-l">카테고리</div><div class="stat-v" id="s-cats">—</div></div>
   </div>
 
   <!-- 검색 + 카테고리 필터 -->
@@ -390,7 +396,7 @@
         <th class="cnum">#</th>
         <th data-sort="model">MODEL <span class="si">↕</span></th>
         <th data-sort="cat">카테고리 <span class="si">↕</span></th>
-        <th data-sort="status" style="text-align:center">재고 <span class="si">↕</span></th>
+        <th data-sort="status">재고 <span class="si">↕</span></th>
         <th data-sort="price" style="text-align:right">가격 (VAT포함) <span class="si">↕</span></th>
         <th style="text-align:right">주문</th>
       </tr></thead>
@@ -521,8 +527,8 @@ const PAL = [
   {c:'#60a5fa',b:'rgba(96,165,250,.3)',g:'rgba(96,165,250,.07)'},
   {c:'#f87171',b:'rgba(248,113,113,.3)',g:'rgba(248,113,113,.07)'},
 ];
-const DMAP = {재고있음:'don', 소량재고:'dlow', 품절:'doff'};
-const DLAB = {재고있음:'재고있음', 소량재고:'소량재고', 품절:'품절'};
+const DMAP = {재고있음:'don', 소량재고:'dlow', 품절:'doff', 가격문의:'dinq'};
+const DLAB = {재고있음:'재고있음', 소량재고:'소량재고', 품절:'품절', 가격문의:'가격문의'};
 
 let DATA = [], CATS = [], CART = [];
 let sortCol = null, sortDir = 1, filterCat = 'all';
@@ -576,17 +582,24 @@ function render() {
     const p = palOf(d.cat);
     const inCart = CART.some(c => c.id === d.id);
     const out = d.status === '품절';
+    const inq = d.status === '가격문의';
     const tr = document.createElement('tr');
     tr.style.animationDelay = (i * 25) + 'ms';
+    const dotCls = DMAP[d.status] || 'doff';
+    const statusHtml = `<span class="status-badge sbg-${dotCls}"><span class="dot ${dotCls}"></span>${d.status || '품절'}</span>`;
+    const priceHtml = inq
+      ? `<span style="color:#a78bfa;font-size:13px;font-family:'Noto Sans KR',sans-serif;font-weight:600">가격문의</span>`
+      : fmt(d.price);
+    const btnLabel = out ? '품절' : inq ? '문의' : inCart ? '✓ 담김' : '+ 담기';
     tr.innerHTML = `
       <td class="cnum">${String(i + 1).padStart(2, '0')}</td>
       <td class="cmodel">${d.model}</td>
       <td><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td>
-      <td class="cstat"><span class="dot ${DMAP[d.status] || 'doff'}" title="${d.status}"></span></td>
-      <td class="cprice">${fmt(d.price)}</td>
+      <td class="cstat">${statusHtml}</td>
+      <td class="cprice">${priceHtml}</td>
       <td class="cact">
-        <button class="add-btn${inCart ? ' added' : ''}${out ? ' out' : ''}" data-id="${d.id}">
-          <span class="btn-text">${out ? '품절' : inCart ? '✓ 담김' : '+ 담기'}</span>
+        <button class="add-btn${inCart ? ' added' : ''}${(out || inq) ? ' out' : ''}" data-id="${d.id}">
+          <span class="btn-text">${btnLabel}</span>
         </button>
       </td>`;
     tb.appendChild(tr);
