@@ -63,12 +63,18 @@
   .cnum{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);width:48px}
   .cmodel{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:14px}
   .cprice{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent3);text-align:right;white-space:nowrap}
-  .cstat{text-align:center}.cact{text-align:right;width:90px;white-space:nowrap}
+  .cstat{text-align:left;white-space:nowrap}.cact{text-align:right;width:90px;white-space:nowrap}
   .tag{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;border:1px solid}
   .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
   .don{background:var(--accent3);box-shadow:0 0 8px var(--accent3)}
   .dlow{background:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.6)}
   .doff{background:#f87171;box-shadow:0 0 8px rgba(248,113,113,.5)}
+  .dinq{background:#a78bfa;box-shadow:0 0 8px rgba(167,139,250,.6)}
+  .status-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-family:'Noto Sans KR',sans-serif;font-weight:500;white-space:nowrap}
+  .sbg-don{color:var(--accent3)}
+  .sbg-dlow{color:#fbbf24}
+  .sbg-doff{color:#f87171}
+  .sbg-dinq{color:#a78bfa}
   .bedit,.bdel{background:none;border:none;cursor:pointer;padding:6px;border-radius:5px;transition:all .15s;font-size:15px;line-height:1}
   .bedit:hover{background:rgba(0,212,255,.12)}.bdel:hover{background:rgba(248,113,113,.15)}
   .nores td{text-align:center;padding:48px;color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace}
@@ -204,9 +210,9 @@
     </div>
   </div>
   <div class="stats">
-    <div class="stat"><div class="stat-l">Total Items</div><div class="stat-v" id="s-total">—</div></div>
-    <div class="stat"><div class="stat-l">In Stock</div><div class="stat-v" id="s-stock">—</div></div>
-    <div class="stat"><div class="stat-l">Categories</div><div class="stat-v" id="s-cats">—</div></div>
+    <div class="stat"><div class="stat-l">전체 항목</div><div class="stat-v" id="s-total">—</div></div>
+    <div class="stat"><div class="stat-l">재고있음</div><div class="stat-v" id="s-stock">—</div></div>
+    <div class="stat"><div class="stat-l">카테고리</div><div class="stat-v" id="s-cats">—</div></div>
   </div>
   <div class="controls">
     <div class="row1">
@@ -283,6 +289,7 @@
           <option value="재고있음">재고있음</option>
           <option value="소량재고">소량재고</option>
           <option value="품절">품절</option>
+          <option value="가격문의">가격문의</option>
         </select>
       </div>
       <div class="field full"><label>공급가 (원, VAT포함)</label><input id="f-price" type="number" placeholder="예) 450000"></div>
@@ -398,7 +405,7 @@ const PAL=[
   {c:'#60a5fa',b:'rgba(96,165,250,.3)',g:'rgba(96,165,250,.07)'},
   {c:'#f87171',b:'rgba(248,113,113,.3)',g:'rgba(248,113,113,.07)'},
 ];
-const DMAP={재고있음:'don',소량재고:'dlow',품절:'doff'};
+const DMAP={재고있음:'don',소량재고:'dlow',품절:'doff',가격문의:'dinq'};
 
 let DATA=[],CATS=[],editId=null,sortCol=null,sortDir=1,filterCat='all',_uid=1;
 let currentHash=DEF_HASH;
@@ -488,7 +495,7 @@ function render(){
   const tb=document.getElementById('tbody');tb.innerHTML='';
   if(!rows.length){tb.innerHTML='<tr class="nores"><td colspan="6">검색 결과가 없어요 🔍</td></tr>';return;}
   rows.forEach((d,i)=>{const p=palOf(d.cat);const tr=document.createElement('tr');tr.style.animationDelay=(i*25)+'ms';
-    tr.innerHTML=`<td class="cnum">${String(i+1).padStart(2,'0')}</td><td class="cmodel">${d.model}</td><td><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td><td class="cstat"><span class="dot ${DMAP[d.status]||'doff'}" title="${d.status}"></span></td><td class="cprice">${fmt(d.price)}</td><td class="cact"><button class="bedit" data-id="${d.id}" title="수정">✏️</button><button class="bdel" data-id="${d.id}" title="삭제">🗑️</button></td>`;
+    tr.innerHTML=`<td class="cnum">${String(i+1).padStart(2,'0')}</td><td class="cmodel">${d.model}</td><td><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td><td class="cstat"><span class="status-badge sbg-${DMAP[d.status]||'doff'}"><span class="dot ${DMAP[d.status]||'doff'}"></span>${d.status||'품절'}</span></td><td class="cprice">${d.status==='가격문의'?'<span style="color:#a78bfa;font-size:13px;font-family:\'Noto Sans KR\',sans-serif;font-weight:600">가격문의</span>':fmt(d.price)}</td><td class="cact"><button class="bedit" data-id="${d.id}" title="수정">✏️</button><button class="bdel" data-id="${d.id}" title="삭제">🗑️</button></td>`;
     tb.appendChild(tr);});
   tb.querySelectorAll('button.bedit').forEach(b=>b.onclick=()=>openEditM(Number(b.dataset.id)));
   tb.querySelectorAll('button.bdel').forEach(b=>b.onclick=()=>delItem(Number(b.dataset.id)));
@@ -524,7 +531,7 @@ async function delCat(i){const cat=CATS[i],used=DATA.filter(d=>d.cat===cat).leng
 // 제품 추가/수정/삭제
 window.openAddM=function(){editId=null;document.getElementById('item-title').textContent='제품 추가';document.getElementById('f-model').value='';document.getElementById('f-price').value='';fillCatSel();document.getElementById('f-status').value='재고있음';openM('m-item');};
 function openEditM(id){const d=DATA.find(x=>x.id===id);if(!d){toast('항목을 찾을 수 없습니다.','ng');return;}editId=id;document.getElementById('item-title').textContent='제품 수정';document.getElementById('f-model').value=d.model;document.getElementById('f-price').value=d.price;fillCatSel(d.cat);document.getElementById('f-status').value=d.status;openM('m-item');}
-window.saveItem=async function(){const model=document.getElementById('f-model').value.trim(),cat=document.getElementById('f-cat').value,stat=document.getElementById('f-status').value,price=parseInt(document.getElementById('f-price').value)||0;if(!model||!price){alert('모델명과 가격을 입력해주세요.');return;}if(editId!==null){const idx=DATA.findIndex(x=>x.id===editId);if(idx!==-1)DATA[idx]={id:editId,model,cat,price,status:stat};}else{DATA.push({id:_uid++,model,cat,price,status:stat});}await saveData();closeM('m-item');toast('저장 완료 ✓');};
+window.saveItem=async function(){const model=document.getElementById('f-model').value.trim(),cat=document.getElementById('f-cat').value,stat=document.getElementById('f-status').value,price=parseInt(document.getElementById('f-price').value)||0;if(!model||(stat!=='가격문의'&&!price)){alert('모델명과 가격을 입력해주세요.');return;}if(editId!==null){const idx=DATA.findIndex(x=>x.id===editId);if(idx!==-1)DATA[idx]={id:editId,model,cat,price,status:stat};}else{DATA.push({id:_uid++,model,cat,price,status:stat});}await saveData();closeM('m-item');toast('저장 완료 ✓');};
 async function delItem(id){const idx=DATA.findIndex(x=>x.id===id);if(idx===-1){toast('항목을 찾을 수 없습니다.','ng');return;}if(!confirm(`'${DATA[idx].model}' 을(를) 삭제할까요?`))return;DATA.splice(idx,1);await saveData();toast('삭제 완료 ✓');}
 
 // 엑셀 업로드
