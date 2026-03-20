@@ -255,7 +255,17 @@
   .ci-qty { display: flex; align-items: center; gap: 8px; }
   .qbtn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border2); background: var(--surface); color: var(--text); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; padding: 0; line-height: 1; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
   .qbtn:hover { border-color: var(--accent); color: var(--accent); }
-  .qval { font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 28px; text-align: center; }
+  .qinput {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    width: 44px; text-align: center;
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 6px;
+    color: var(--text); padding: 3px 4px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none; appearance: none;
+    -moz-appearance: textfield;
+  }
+  .qinput::-webkit-inner-spin-button, .qinput::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .qinput:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,212,255,.12); }
   .ci-sub { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; align-self: center; }
   .ci-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 18px; padding: 4px 6px; border-radius: 4px; transition: color .15s; align-self: flex-start; -webkit-tap-highlight-color: transparent; }
   .ci-del:hover { color: var(--danger); }
@@ -638,7 +648,7 @@ function renderCartPanel() {
           <div class="ci-price">${fmt(c.price)} / 개</div>
           <div class="ci-qty">
             <button class="qbtn" data-id="${c.id}" data-act="minus">−</button>
-            <span class="qval">${c.qty}</span>
+            <input class="qinput" type="number" min="1" data-id="${c.id}" value="${c.qty}">
             <button class="qbtn" data-id="${c.id}" data-act="plus">+</button>
           </div>
         </div>
@@ -655,6 +665,18 @@ function renderCartPanel() {
       act === 'plus' ? CART[ci].qty++ : (--CART[ci].qty <= 0 && CART.splice(ci, 1));
       renderCartPanel(); render(); updateCartBadge();
     };
+  });
+  wrap.querySelectorAll('.qinput').forEach(inp => {
+    inp.onchange = () => {
+      const id = Number(inp.dataset.id);
+      const ci = CART.findIndex(c => c.id === id);
+      if (ci === -1) return;
+      const v = parseInt(inp.value) || 0;
+      if (v <= 0) { CART.splice(ci, 1); }
+      else { CART[ci].qty = v; }
+      renderCartPanel(); render(); updateCartBadge();
+    };
+    inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
   });
   wrap.querySelectorAll('.ci-del').forEach(b => {
     b.onclick = () => {
