@@ -154,10 +154,9 @@
   thead th .si { margin-left: 6px; opacity: .4; font-size: 10px; }
   thead th.sorted { color: var(--accent); }
   thead th.sorted .si { opacity: 1; }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; animation: fadeIn .3s ease both; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--row-hover); }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
   td { padding: clamp(12px,1.6vw,16px) clamp(12px,1.8vw,20px); font-size: clamp(12px,1.4vw,14px); vertical-align: middle; }
   .cnum { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); width: 48px; }
   .cmodel { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: clamp(12px,1.4vw,14px); }
@@ -336,6 +335,26 @@
   .fnote { margin-top: 28px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
   .fnote::before { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border2)); }
 
+  /* ─── 페이지네이션 ─── */
+  .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; gap: 12px; flex-wrap: wrap; }
+  .pg-info { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .pg-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .pg-btn {
+    padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2); border-radius: 7px;
+    color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer;
+    transition: all .15s; -webkit-tap-highlight-color: transparent; min-width: 32px; text-align: center;
+  }
+  .pg-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .pg-btn.active { border-color: var(--accent); color: var(--accent); background: var(--tag-bg); }
+  .pg-btn:disabled { opacity: .35; cursor: default; }
+  .pg-size { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  .pg-size select {
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 6px;
+    color: var(--text2); font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 4px 8px; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+  }
+  .pg-size select:focus { border-color: var(--accent); }
+
   /* ─── 반응형 ─── */
   @media (max-width: 640px) {
     .stats { flex-direction: column; }
@@ -402,6 +421,21 @@
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
+  </div>
+
+  <!-- 페이지네이션 -->
+  <div class="pagination" id="pagination" style="display:none">
+    <div class="pg-size">
+      페이지당
+      <select id="pg-size-sel">
+        <option value="30">30개</option>
+        <option value="50" selected>50개</option>
+        <option value="100">100개</option>
+        <option value="200">200개</option>
+      </select>
+    </div>
+    <div class="pg-info" id="pg-info"></div>
+    <div class="pg-btns" id="pg-btns"></div>
   </div>
 
   <div class="fnote">마지막 업데이트: <span id="lupd">—</span> · 가격은 VAT 포함 공급가 기준</div>
@@ -532,6 +566,9 @@ const DLAB = {재고있음:'재고있음', 소량재고:'소량재고', 품절:'
 
 let DATA = [], CATS = [], CART = [];
 let sortCol = null, sortDir = 1, filterCat = 'all';
+let _filteredRows = [];   // 필터/정렬 결과 캐시
+let _currentPage = 0;
+let _pageSize = 50;
 
 const fmt = n => n.toLocaleString('ko-KR') + ' 원';
 const palOf = c => PAL[(CATS.indexOf(c) < 0 ? 0 : CATS.indexOf(c)) % PAL.length];
@@ -551,40 +588,89 @@ function renderFilters() {
     const b = document.createElement('button');
     b.className = 'fbtn' + (filterCat === val ? ' on' : '');
     b.textContent = label;
-    b.onclick = () => { filterCat = val; renderFilters(); render(); };
+    b.onclick = () => { filterCat = val; renderFilters(); _currentPage = 0; render(); };
     row.appendChild(b);
   };
   mk('ALL', 'all');
   CATS.forEach(c => mk(c, c));
 }
 
-// 제품 테이블 렌더링
-function render() {
+// 페이지네이션 렌더링
+function renderPagination(total) {
+  const pgWrap = document.getElementById('pagination');
+  const pgInfo = document.getElementById('pg-info');
+  const pgBtns = document.getElementById('pg-btns');
+  const totalPages = Math.ceil(total / _pageSize);
+
+  if (total <= _pageSize) { pgWrap.style.display = 'none'; return; }
+  pgWrap.style.display = 'flex';
+
+  const from = _currentPage * _pageSize + 1;
+  const to   = Math.min((_currentPage + 1) * _pageSize, total);
+  pgInfo.textContent = `${from}–${to} / ${total}개`;
+
+  pgBtns.innerHTML = '';
+  const addBtn = (label, page, disabled, active) => {
+    const b = document.createElement('button');
+    b.className = 'pg-btn' + (active ? ' active' : '');
+    b.textContent = label; b.disabled = disabled;
+    b.onclick = () => { _currentPage = page; renderPage(); };
+    pgBtns.appendChild(b);
+  };
+
+  addBtn('◀', _currentPage - 1, _currentPage === 0, false);
+  // 앞/뒤 2페이지 + 현재 페이지만 표시 (너무 많아지지 않게)
+  const range = [];
+  for (let i = 0; i < totalPages; i++) {
+    if (i === 0 || i === totalPages - 1 || Math.abs(i - _currentPage) <= 2) range.push(i);
+    else if (range[range.length - 1] !== '…') range.push('…');
+  }
+  range.forEach(p => {
+    if (p === '…') { const s = document.createElement('span'); s.textContent = '…'; s.style.cssText = 'color:var(--muted);font-size:12px;padding:0 4px'; pgBtns.appendChild(s); }
+    else addBtn(p + 1, p, false, p === _currentPage);
+  });
+  addBtn('▶', _currentPage + 1, _currentPage >= totalPages - 1, false);
+}
+
+// 필터+정렬 결과를 캐시에 저장 (데이터/필터/정렬 변경 시만 재계산)
+function applyFilterSort() {
   const q = document.getElementById('search').value.trim().toLowerCase();
   let rows = DATA.filter(d =>
     (filterCat === 'all' || d.cat === filterCat) &&
     (!q || d.model.toLowerCase().includes(q))
   );
   if (sortCol) {
-    rows = [...rows].sort((a, b) => {
+    rows.sort((a, b) => {
       if (sortCol === 'price') return (a.price - b.price) * sortDir;
       const va = sortCol === 'cat' ? (a.cat || '') : (a[sortCol] || '');
       const vb = sortCol === 'cat' ? (b.cat || '') : (b[sortCol] || '');
       return va.localeCompare(vb, 'ko') * sortDir;
     });
   }
-  const tb = document.getElementById('tbody'); tb.innerHTML = '';
-  if (!rows.length) {
+  _filteredRows = rows;
+}
+
+// 현재 페이지만 DOM에 그리기 (DocumentFragment 사용)
+function renderPage() {
+  const tb = document.getElementById('tbody');
+  const total = _filteredRows.length;
+
+  if (!total) {
     tb.innerHTML = '<tr class="nores"><td colspan="6">검색 결과가 없어요 🔍</td></tr>';
+    document.getElementById('pagination').style.display = 'none';
     return;
   }
-  rows.forEach((d, i) => {
+
+  const start = _currentPage * _pageSize;
+  const slice = _filteredRows.slice(start, start + _pageSize);
+  const frag  = document.createDocumentFragment();
+
+  slice.forEach((d, i) => {
     const p = palOf(d.cat);
     const inCart = CART.some(c => c.id === d.id);
     const out = d.status === '품절';
     const inq = d.status === '가격문의';
     const tr = document.createElement('tr');
-    tr.style.animationDelay = (i * 25) + 'ms';
     const dotCls = DMAP[d.status] || 'doff';
     const statusHtml = `<span class="status-badge sbg-${dotCls}"><span class="dot ${dotCls}"></span>${d.status || '품절'}</span>`;
     const priceHtml = inq
@@ -592,7 +678,7 @@ function render() {
       : fmt(d.price);
     const btnLabel = out ? '품절' : inq ? '문의' : inCart ? '✓ 담김' : '+ 담기';
     tr.innerHTML = `
-      <td class="cnum">${String(i + 1).padStart(2, '0')}</td>
+      <td class="cnum">${String(start + i + 1).padStart(2, '0')}</td>
       <td class="cmodel">${d.model}</td>
       <td><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td>
       <td class="cstat">${statusHtml}</td>
@@ -602,16 +688,29 @@ function render() {
           <span class="btn-text">${btnLabel}</span>
         </button>
       </td>`;
-    tb.appendChild(tr);
+    frag.appendChild(tr);
   });
+
+  tb.innerHTML = '';
+  tb.appendChild(frag);
+
   tb.querySelectorAll('.add-btn:not(.out)').forEach(b => {
     b.onclick = () => toggleCart(Number(b.dataset.id));
   });
+
+  renderPagination(total);
 
   document.getElementById('s-total').textContent = DATA.length;
   document.getElementById('s-stock').textContent = DATA.filter(d => d.status === '재고있음').length;
   document.getElementById('s-cats').textContent = CATS.length;
   document.getElementById('lupd').textContent = new Date().toLocaleString('ko-KR', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+// render() : 필터+정렬 재계산 후 첫 페이지 표시
+function render() {
+  applyFilterSort();
+  _currentPage = 0;
+  renderPage();
 }
 
 // 정렬
@@ -626,11 +725,25 @@ document.querySelectorAll('thead th[data-sort]').forEach(th => {
     });
     th.classList.add('sorted');
     th.querySelector('.si').textContent = sortDir === 1 ? '↑' : '↓';
+    _currentPage = 0;
     render();
   };
 });
 
-document.getElementById('search').oninput = () => render();
+// 검색 debounce (300ms)
+let _searchTimer;
+document.getElementById('search').oninput = () => {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => render(), 300);
+};
+
+// 페이지당 항목 수 변경
+document.getElementById('pg-size-sel').onchange = e => {
+  _pageSize = parseInt(e.target.value);
+  _currentPage = 0;
+  applyFilterSort();
+  renderPage();
+};
 
 // 장바구니
 function toggleCart(id) {
@@ -642,7 +755,16 @@ function toggleCart(id) {
     CART.push({ id: d.id, model: d.model, cat: d.cat, price: d.price, qty: 1 });
     toast(`'${d.model}' 담겼습니다 ✓`);
   }
-  render(); renderCartPanel(); updateCartBadge();
+  // 테이블 전체 재렌더 대신 버튼 상태만 업데이트
+  document.querySelectorAll('#tbody .add-btn[data-id]').forEach(b => {
+    const bid = Number(b.dataset.id);
+    const d   = DATA.find(x => x.id === bid); if (!d) return;
+    const inCart = CART.some(c => c.id === bid);
+    const out = d.status === '품절'; const inq = d.status === '가격문의';
+    b.className = 'add-btn' + (inCart ? ' added' : '') + ((out || inq) ? ' out' : '');
+    b.querySelector('.btn-text').textContent = out ? '품절' : inq ? '문의' : inCart ? '✓ 담김' : '+ 담기';
+  });
+  renderCartPanel(); updateCartBadge();
 }
 
 function updateCartBadge() {
@@ -687,7 +809,7 @@ function renderCartPanel() {
       const ci = CART.findIndex(c => c.id === id);
       if (ci === -1) return;
       act === 'plus' ? CART[ci].qty++ : (--CART[ci].qty <= 0 && CART.splice(ci, 1));
-      renderCartPanel(); render(); updateCartBadge();
+      renderCartPanel(); refreshCartButtons(); updateCartBadge();
     };
   });
   wrap.querySelectorAll('.qinput').forEach(inp => {
@@ -698,14 +820,14 @@ function renderCartPanel() {
       const v = parseInt(inp.value) || 0;
       if (v <= 0) { CART.splice(ci, 1); }
       else { CART[ci].qty = v; }
-      renderCartPanel(); render(); updateCartBadge();
+      renderCartPanel(); refreshCartButtons(); updateCartBadge();
     };
     inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
   });
   wrap.querySelectorAll('.ci-del').forEach(b => {
     b.onclick = () => {
       CART = CART.filter(c => c.id !== Number(b.dataset.id));
-      renderCartPanel(); render(); updateCartBadge();
+      renderCartPanel(); refreshCartButtons(); updateCartBadge();
     };
   });
   const tq = CART.reduce((s, c) => s + c.qty, 0);
@@ -714,6 +836,18 @@ function renderCartPanel() {
   document.getElementById('sum-price').textContent = fmt(tp);
   document.getElementById('sum-total').textContent  = fmt(tp);
   sumWrap.style.display = 'block';
+}
+
+// 장바구니 상태 반영 (테이블 전체 재렌더 없이 버튼만 갱신)
+function refreshCartButtons() {
+  document.querySelectorAll('#tbody .add-btn[data-id]').forEach(b => {
+    const bid = Number(b.dataset.id);
+    const d   = DATA.find(x => x.id === bid); if (!d) return;
+    const inCart = CART.some(c => c.id === bid);
+    const out = d.status === '품절'; const inq = d.status === '가격문의';
+    b.className = 'add-btn' + (inCart ? ' added' : '') + ((out || inq) ? ' out' : '');
+    b.querySelector('.btn-text').textContent = out ? '품절' : inq ? '문의' : inCart ? '✓ 담김' : '+ 담기';
+  });
 }
 
 // 패널 열기/닫기
@@ -775,7 +909,7 @@ window.resetOrder = function() {
   ['f-company','f-contact','f-addr','f-tel','f-memo'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-date').value = '';
   document.getElementById('form-err').textContent = '';
-  renderCartPanel(); render(); updateCartBadge();
+  renderCartPanel(); refreshCartButtons(); updateCartBadge();
   closeCart();
 };
 
@@ -790,7 +924,7 @@ window.cancelOrder = function() {
   const dd = new Date(); dd.setDate(dd.getDate() + 7);
   document.getElementById('f-date').value = dd.toISOString().split('T')[0];
   document.getElementById('form-err').textContent = '';
-  renderCartPanel(); render(); updateCartBadge();
+  renderCartPanel(); refreshCartButtons(); updateCartBadge();
   closeCart();
   toast('주문이 취소되었습니다.', 'ng');
 };
