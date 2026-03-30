@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NetGear Pro — 네트워크 장비 가격표 & 주문</title>
+<title>네트워크 장비 가격표 & 주문</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- 동적 폰트 변경을 위해 폰트 추가 (Pretendard) -->
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
   :root {
     --bg: #06090f;
@@ -35,6 +37,7 @@
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    transition: font-family 0.3s ease;
   }
   body::before {
     content: '';
@@ -142,7 +145,7 @@
 
   /* ─── 제품 테이블 ─── */
   .twrap { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--card-glow); }
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: collapse; table-layout: auto; }
   thead tr { background: linear-gradient(135deg, #0d1a2e, #111e30); border-bottom: 1px solid var(--border2); }
   thead th {
     padding: clamp(10px,1.4vw,16px) clamp(12px,1.8vw,20px); text-align: left;
@@ -158,11 +161,12 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--row-hover); }
   td { padding: clamp(12px,1.6vw,16px) clamp(12px,1.8vw,20px); font-size: clamp(12px,1.4vw,14px); vertical-align: middle; }
-  .cnum { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); width: 48px; }
-  .cmodel { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: clamp(12px,1.4vw,14px); }
-  .cprice { font-family: 'Syne', sans-serif; font-size: clamp(13px,1.5vw,15px); font-weight: 700; color: var(--accent2); text-align: right; white-space: nowrap; }
-  .cstat { text-align: left; white-space: nowrap; }
-  .cact { text-align: right; white-space: nowrap; }
+  .cnum { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); width: 48px; white-space: nowrap; }
+  .cmodel { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: clamp(12px,1.4vw,14px); width: auto; word-break: break-word; }
+  .cprice { font-family: 'Syne', sans-serif; font-size: clamp(13px,1.5vw,15px); font-weight: 700; color: var(--accent2); text-align: right; white-space: nowrap; width: 180px; }
+  .cstat { text-align: left; white-space: nowrap; width: 120px; }
+  .ccat { white-space: nowrap; width: 140px; }
+  .cact { text-align: right; white-space: nowrap; width: 100px; }
   .tag { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: .06em; border: 1px solid; }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
   .don { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
@@ -386,15 +390,14 @@
 <div class="wrap">
   <header>
     <div class="badge">Live Pricing</div>
-    <h1>Network Equipment<br>Price List</h1>
-    <p class="subtitle">네트워크 장비 공급가 목록 — 모델명 / 가격 실시간 관리 · 바로 주문 가능</p>
+    <!-- id 추가 (관리자 실시간 동기화) -->
+    <h1 id="site-title" style="white-space: pre-line;">Network Equipment<br>Price List</h1>
+    <p class="subtitle" id="site-subtitle">네트워크 장비 공급가 목록 — 모델명 / 가격 실시간 관리 · 바로 주문 가능</p>
   </header>
 
   <!-- 통계 -->
   <div class="stats">
     <div class="stat"><div class="stat-l">전체 항목</div><div class="stat-v" id="s-total">—</div></div>
-    <div class="stat"><div class="stat-l">재고있음</div><div class="stat-v" id="s-stock">—</div></div>
-    <div class="stat"><div class="stat-l">카테고리</div><div class="stat-v" id="s-cats">—</div></div>
   </div>
 
   <!-- 검색 + 카테고리 필터 -->
@@ -413,11 +416,11 @@
     <table>
       <thead><tr>
         <th class="cnum">#</th>
-        <th data-sort="model">MODEL <span class="si">↕</span></th>
-        <th data-sort="cat">카테고리 <span class="si">↕</span></th>
-        <th data-sort="status">재고 <span class="si">↕</span></th>
-        <th data-sort="price" style="text-align:right">가격 (VAT포함) <span class="si">↕</span></th>
-        <th style="text-align:right">주문</th>
+        <th data-sort="model" class="cmodel">MODEL <span class="si">↕</span></th>
+        <th data-sort="price" class="cprice">가격 (VAT포함) <span class="si">↕</span></th>
+        <!-- 카테고리 헤더 추가 -->
+        <th data-sort="cat" class="ccat">카테고리 <span class="si">↕</span></th>
+        <th class="cact" style="text-align:right">주문</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -535,6 +538,56 @@ const db  = getFirestore(app);
 const REF_DATA   = doc(db, 'pricelist', 'data');
 const ORDERS_COL = collection(db, 'orders');
 
+// === 설정(디자인/텍스트) 구독 ===
+const REF_SETTINGS = doc(db, 'pricelist', 'settings');
+
+function hexToRgb(hex) {
+  hex = hex.replace(/^#/, '');
+  let r = 0, g = 212, b = 255;
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else if (hex.length === 6) {
+    r = parseInt(hex.substring(0, 2), 16);
+    g = parseInt(hex.substring(2, 4), 16);
+    b = parseInt(hex.substring(4, 6), 16);
+  }
+  return `${r},${g},${b}`;
+}
+
+onSnapshot(REF_SETTINGS, snap => {
+  if (snap.exists()) {
+    const d = snap.data();
+    
+    // 텍스트 반영
+    if (d.title) document.getElementById('site-title').innerHTML = d.title.replace(/\n/g, '<br>');
+    if (d.subtitle) document.getElementById('site-subtitle').textContent = d.subtitle;
+
+    // 폰트 반영
+    if (d.font) document.body.style.fontFamily = d.font;
+
+    // CSS 변수(컬러) 반영
+    if (d.color) {
+      const root = document.documentElement;
+      const rgb = hexToRgb(d.color);
+      
+      root.style.setProperty('--accent', d.color);
+      root.style.setProperty('--accent-glow', `rgba(${rgb}, .25)`);
+      root.style.setProperty('--tag-bg', `rgba(${rgb}, .08)`);
+      root.style.setProperty('--row-hover', `rgba(${rgb}, .04)`);
+      root.style.setProperty('--card-glow', `0 0 30px rgba(${rgb}, .15)`);
+      
+      const h1 = document.getElementById('site-title');
+      h1.style.background = `linear-gradient(135deg, #fff 30%, ${d.color} 100%)`;
+      h1.style.webkitBackgroundClip = 'text';
+      h1.style.webkitTextFillColor = 'transparent';
+      h1.style.backgroundClip = 'text';
+    }
+  }
+});
+// ===================================
+
 const DEF_CATS = ['스위치','라우터','AP','방화벽','서버','케이블/기타'];
 const DEF_DATA = [
   {id:1,model:'Cisco C9200L-24T-4G',cat:'스위치',price:1250000,status:'재고있음'},
@@ -566,7 +619,7 @@ const DLAB = {재고있음:'재고있음', 소량재고:'소량재고', 품절:'
 
 let DATA = [], CATS = [], CART = [];
 let sortCol = null, sortDir = 1, filterCat = 'all';
-let _filteredRows = [];   // 필터/정렬 결과 캐시
+let _filteredRows = [];
 let _currentPage = 0;
 let _pageSize = 50;
 
@@ -619,7 +672,6 @@ function renderPagination(total) {
   };
 
   addBtn('◀', _currentPage - 1, _currentPage === 0, false);
-  // 앞/뒤 2페이지 + 현재 페이지만 표시 (너무 많아지지 않게)
   const range = [];
   for (let i = 0; i < totalPages; i++) {
     if (i === 0 || i === totalPages - 1 || Math.abs(i - _currentPage) <= 2) range.push(i);
@@ -642,21 +694,21 @@ function applyFilterSort() {
   if (sortCol) {
     rows.sort((a, b) => {
       if (sortCol === 'price') return (a.price - b.price) * sortDir;
-      const va = sortCol === 'cat' ? (a.cat || '') : (a[sortCol] || '');
-      const vb = sortCol === 'cat' ? (b.cat || '') : (b[sortCol] || '');
+      const va = a[sortCol] || '';
+      const vb = b[sortCol] || '';
       return va.localeCompare(vb, 'ko') * sortDir;
     });
   }
   _filteredRows = rows;
 }
 
-// 현재 페이지만 DOM에 그리기 (DocumentFragment 사용)
+// 현재 페이지만 DOM에 그리기
 function renderPage() {
   const tb = document.getElementById('tbody');
   const total = _filteredRows.length;
 
   if (!total) {
-    tb.innerHTML = '<tr class="nores"><td colspan="6">검색 결과가 없어요 🔍</td></tr>';
+    tb.innerHTML = '<tr class="nores"><td colspan="5">검색 결과가 없어요 🔍</td></tr>';
     document.getElementById('pagination').style.display = 'none';
     return;
   }
@@ -666,23 +718,22 @@ function renderPage() {
   const frag  = document.createDocumentFragment();
 
   slice.forEach((d, i) => {
-    const p = palOf(d.cat);
     const inCart = CART.some(c => c.id === d.id);
     const out = d.status === '품절';
     const inq = d.status === '가격문의';
     const tr = document.createElement('tr');
-    const dotCls = DMAP[d.status] || 'doff';
-    const statusHtml = `<span class="status-badge sbg-${dotCls}"><span class="dot ${dotCls}"></span>${d.status || '품절'}</span>`;
     const priceHtml = inq
       ? `<span style="color:#a78bfa;font-size:13px;font-family:'Noto Sans KR',sans-serif;font-weight:600">가격문의</span>`
       : fmt(d.price);
     const btnLabel = out ? '품절' : inq ? '문의' : inCart ? '✓ 담김' : '+ 담기';
+    const p = palOf(d.cat); // 카테고리 컬러 팔레트 추출
+
     tr.innerHTML = `
       <td class="cnum">${String(start + i + 1).padStart(2, '0')}</td>
       <td class="cmodel">${d.model}</td>
-      <td><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td>
-      <td class="cstat">${statusHtml}</td>
       <td class="cprice">${priceHtml}</td>
+      <!-- 추가된 카테고리 열 -->
+      <td class="ccat"><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td>
       <td class="cact">
         <button class="add-btn${inCart ? ' added' : ''}${(out || inq) ? ' out' : ''}" data-id="${d.id}">
           <span class="btn-text">${btnLabel}</span>
@@ -701,12 +752,10 @@ function renderPage() {
   renderPagination(total);
 
   document.getElementById('s-total').textContent = DATA.length;
-  document.getElementById('s-stock').textContent = DATA.filter(d => d.status === '재고있음').length;
-  document.getElementById('s-cats').textContent = CATS.length;
   document.getElementById('lupd').textContent = new Date().toLocaleString('ko-KR', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 }
 
-// render() : 필터+정렬 재계산 후 첫 페이지 표시
+// render()
 function render() {
   applyFilterSort();
   _currentPage = 0;
@@ -730,7 +779,7 @@ document.querySelectorAll('thead th[data-sort]').forEach(th => {
   };
 });
 
-// 검색 debounce (300ms)
+// 검색 debounce
 let _searchTimer;
 document.getElementById('search').oninput = () => {
   clearTimeout(_searchTimer);
@@ -745,7 +794,7 @@ document.getElementById('pg-size-sel').onchange = e => {
   renderPage();
 };
 
-// 장바구니
+// 장바구니 로직
 function toggleCart(id) {
   const idx = CART.findIndex(c => c.id === id);
   if (idx !== -1) { CART.splice(idx, 1); toast('장바구니에서 제거했습니다'); }
@@ -755,7 +804,6 @@ function toggleCart(id) {
     CART.push({ id: d.id, model: d.model, cat: d.cat, price: d.price, qty: 1 });
     toast(`'${d.model}' 담겼습니다 ✓`);
   }
-  // 테이블 전체 재렌더 대신 버튼 상태만 업데이트
   document.querySelectorAll('#tbody .add-btn[data-id]').forEach(b => {
     const bid = Number(b.dataset.id);
     const d   = DATA.find(x => x.id === bid); if (!d) return;
@@ -838,7 +886,6 @@ function renderCartPanel() {
   sumWrap.style.display = 'block';
 }
 
-// 장바구니 상태 반영 (테이블 전체 재렌더 없이 버튼만 갱신)
 function refreshCartButtons() {
   document.querySelectorAll('#tbody .add-btn[data-id]').forEach(b => {
     const bid = Number(b.dataset.id);
@@ -929,11 +976,9 @@ window.cancelOrder = function() {
   toast('주문이 취소되었습니다.', 'ng');
 };
 
-// 기본 납기일 설정 (7일 후)
 const dd = new Date(); dd.setDate(dd.getDate() + 7);
 document.getElementById('f-date').value = dd.toISOString().split('T')[0];
 
-// Firestore 실시간 구독
 onSnapshot(doc(db, 'pricelist', 'data'), snap => {
   if (snap.exists()) {
     const d = snap.data();

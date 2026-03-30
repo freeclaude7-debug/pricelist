@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NetGear Pro — 관리자</title>
+<title>관리자</title>
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -26,7 +26,6 @@
   .bbtn{padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:.06em;transition:all .2s;border:1px solid}
   .bbtn.c{background:var(--tag-bg);border-color:rgba(0,212,255,.3);color:var(--accent)}.bbtn.c:hover{background:rgba(0,212,255,.15)}
   .bbtn.r{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.3);color:var(--danger)}.bbtn.r:hover{background:rgba(248,113,113,.15)}
-  /* 주문 버튼 스타일 */
   .bbtn.o{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.35);color:var(--gold)}.bbtn.o:hover{background:rgba(245,158,11,.18)}
   .bbtn.o.has-new{animation:orderBlink .9s infinite}
   @keyframes orderBlink{0%,100%{border-color:rgba(245,158,11,.35)}50%{border-color:var(--gold);box-shadow:0 0 10px rgba(245,158,11,.4)}}
@@ -50,7 +49,7 @@
   .abtn.green{background:var(--accent3)}.abtn.green:hover{background:#33ffb3}
   #xl-file{display:none}
   .twrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--glow)}
-  table{width:100%;border-collapse:collapse}
+  table{width:100%;border-collapse:collapse;table-layout:auto}
   thead tr{background:linear-gradient(135deg,#0d1a2e,#111e30);border-bottom:1px solid var(--border2)}
   thead th{padding:16px 20px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none;transition:color .2s}
   thead th:hover{color:var(--accent)}
@@ -60,9 +59,10 @@
   tbody tr:last-child{border-bottom:none}.tbody tr:hover{background:var(--row-hover)}
   @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
   td{padding:16px 20px;font-size:14px;vertical-align:middle}
-  .cnum{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);width:48px}
-  .cmodel{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:14px}
-  .cprice{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent3);text-align:right;white-space:nowrap}
+  .cnum{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);width:48px;white-space:nowrap}
+  .cmodel{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:14px;width:auto;word-break:break-word}
+  .cprice{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent3);text-align:right;white-space:nowrap;width:180px}
+  .ccat{white-space:nowrap;width:140px}
   .cstat{text-align:left;white-space:nowrap}.cact{text-align:right;width:90px;white-space:nowrap}
   .tag{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;border:1px solid}
   .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
@@ -86,8 +86,8 @@
   .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .full{grid-column:1/-1}
   .field label{display:block;font-size:11px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:7px}
-  .field input,.field select{width:100%;padding:10px 13px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;transition:border-color .2s;appearance:none}
-  .field input:focus,.field select:focus{border-color:var(--accent)}
+  .field input,.field select, .field textarea{width:100%;padding:10px 13px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;transition:border-color .2s;appearance:none}
+  .field input:focus,.field select:focus, .field textarea:focus{border-color:var(--accent)}
   .field select option{background:#0d1420}
   .mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:28px}
   .btn{padding:10px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid}
@@ -183,7 +183,7 @@
   <div class="login-card">
     <div>
       <h2>🔐 관리자 로그인</h2>
-      <p class="sub" style="margin-top:8px">NetGear Pro · Admin Panel</p>
+      <p class="sub" style="margin-top:8px">Admin Panel</p>
     </div>
     <div class="field">
       <label>비밀번호</label>
@@ -204,6 +204,7 @@
     <div class="abar-l"><div class="adot"></div><span>관리자 모드 활성</span></div>
     <div class="abar-r">
       <button class="bbtn o" id="order-panel-btn" onclick="openOrderPanel()">📋 주문 확인 <span id="order-new-badge" style="display:none;margin-left:4px;background:var(--gold);color:#000;border-radius:100px;font-size:9px;padding:1px 6px;font-weight:700">NEW</span></button>
+      <button class="bbtn c" onclick="openDesignM()">🎨 사이트 설정</button>
       <button class="bbtn c" onclick="openCatM()">📂 카테고리 관리</button>
       <button class="bbtn c" onclick="openPwM()">🔑 비밀번호 변경</button>
       <button class="bbtn r" onclick="doLogout()">로그아웃</button>
@@ -234,16 +235,48 @@
     <table>
       <thead><tr>
         <th class="cnum">#</th>
-        <th data-sort="model">MODEL <span class="si">↕</span></th>
-        <th data-sort="cat">카테고리 <span class="si">↕</span></th>
-        <th data-sort="status">재고 <span class="si">↕</span></th>
-        <th data-sort="price" style="text-align:right">가격 (VAT포함) <span class="si">↕</span></th>
+        <th data-sort="model" class="cmodel">MODEL <span class="si">↕</span></th>
+        <th data-sort="price" class="cprice">가격 (VAT포함) <span class="si">↕</span></th>
+        <th data-sort="cat" class="ccat">카테고리 <span class="si">↕</span></th>
         <th class="cact">관리</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
   <div class="fnote">마지막 업데이트: <span id="lupd">—</span> · 가격은 VAT 포함 공급가 기준</div>
+</div>
+
+<!-- 사이트 설정(디자인/텍스트) -->
+<div class="mbk" id="m-design">
+  <div class="mbox" style="width:min(400px,92vw)">
+    <h2>🎨 사이트 설정</h2>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="field">
+        <label>메인 타이틀 <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(엔터로 줄바꿈 가능)</span></label>
+        <textarea id="d-title" rows="2" placeholder="Network Equipment Price List" style="resize:vertical"></textarea>
+      </div>
+      <div class="field">
+        <label>서브 타이틀 (설명)</label>
+        <input type="text" id="d-sub" placeholder="네트워크 장비 공급가 목록...">
+      </div>
+      <div class="field">
+        <label>테마 컬러 (메인 색상)</label>
+        <input type="color" id="d-color" style="height:40px; padding:2px; cursor:pointer;" value="#00d4ff">
+      </div>
+      <div class="field">
+        <label>사이트 폰트</label>
+        <select id="d-font">
+          <option value="'Noto Sans KR', sans-serif">Noto Sans KR (기본)</option>
+          <option value="'Pretendard', sans-serif">Pretendard</option>
+          <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn cancel" onclick="closeM('m-design')">취소</button>
+      <button class="btn save" onclick="saveDesign()">적용하기</button>
+    </div>
+  </div>
 </div>
 
 <!-- 비밀번호 변경 -->
@@ -385,6 +418,38 @@ const REF_DATA   = doc(db,'pricelist','data');
 const REF_PW     = doc(db,'pricelist','auth');
 const ORDERS_COL = collection(db,'orders');
 
+// === 추가: 설정(디자인/텍스트) 저장 및 불러오기 ===
+const REF_SETTINGS = doc(db, 'pricelist', 'settings');
+
+onSnapshot(REF_SETTINGS, snap => {
+  if (snap.exists()) {
+    const d = snap.data();
+    document.getElementById('d-title').value = d.title || 'Network Equipment Price List';
+    document.getElementById('d-sub').value = d.subtitle || '네트워크 장비 공급가 목록 — 모델명 / 가격 실시간 관리 · 바로 주문 가능';
+    document.getElementById('d-color').value = d.color || '#00d4ff';
+    document.getElementById('d-font').value = d.font || "'Noto Sans KR', sans-serif";
+  }
+});
+
+window.openDesignM = function() { openM('m-design'); };
+
+window.saveDesign = async function() {
+  const title = document.getElementById('d-title').value;
+  const subtitle = document.getElementById('d-sub').value;
+  const color = document.getElementById('d-color').value;
+  const font = document.getElementById('d-font').value;
+
+  try {
+    // merge: true 옵션으로 기존 다른 데이터는 보존하고 설정값만 업데이트
+    await setDoc(REF_SETTINGS, { title, subtitle, color, font }, { merge: true });
+    toast('디자인/텍스트 설정이 저장되었습니다 ✓');
+    closeM('m-design');
+  } catch(e) {
+    toast('저장 실패: ' + e.message, 'ng');
+  }
+};
+// ===================================
+
 const DEF_HASH = 'ac9689e2272427085e35b9d3e3e8bed88cb3434828b43b86fc0596cad4c6e270';
 const DEF_CATS = ['스위치','라우터','AP','방화벽','서버','케이블/기타'];
 const DEF_DATA = [
@@ -415,8 +480,8 @@ const DMAP={재고있음:'don',소량재고:'dlow',품절:'doff',가격문의:'d
 
 let DATA=[],CATS=[],editId=null,sortCol=null,sortDir=1,filterCat='all',_uid=1;
 let currentHash=DEF_HASH;
-let ORDERS=[];  // 주문 목록
-let _seenOrders=new Set(); // 이미 확인한 주문 ID (새 주문 알림용)
+let ORDERS=[]; 
+let _seenOrders=new Set(); 
 let _ordersLoaded=false;
 
 const fmt=n=>n.toLocaleString('ko-KR')+' 원';
@@ -439,7 +504,6 @@ async function loadHash(){
 async function saveHash(hash){await setDoc(REF_PW,{hash});currentHash=hash;}
 async function saveData(){await setDoc(REF_DATA,{items:DATA,cats:CATS});}
 
-// 로그인
 window.doLogin=async function(){
   const pw=document.getElementById('pw-in').value;
   if(!pw){document.getElementById('pw-err').textContent='비밀번호를 입력하세요.';return;}
@@ -463,7 +527,16 @@ window.doLogout=function(){
   toast('로그아웃 되었습니다');
 };
 
-// 비밀번호 변경
+// 모달 열기/닫기 처리
+const openM=id=>document.getElementById(id).classList.add('open');
+const closeM=id=>{document.getElementById(id).classList.remove('open');if(id==='m-item')editId=null;};
+window.closeM=closeM;
+// m-design 등 모달 배경 클릭 시 닫기
+['m-pw','m-item','m-upload','m-cat','m-design'].forEach(id=>{
+  const el = document.getElementById(id);
+  if (el) el.onclick = e => { if (e.target.id === id) closeM(id); };
+});
+
 window.openPwM=function(){
   ['pw-cur','pw-new','pw-new2'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pw-chg-err').textContent='';
@@ -481,7 +554,6 @@ window.doChangePw=async function(){
   closeM('m-pw');toast('비밀번호 변경 완료 ✓ — 모든 기기에 적용되었습니다');
 };
 
-// 필터
 function renderFilters(){
   const row=document.getElementById('frow');row.innerHTML='';
   const mk=(label,val)=>{const b=document.createElement('button');b.className='fbtn'+(filterCat===val?' on':'');b.textContent=label;b.onclick=()=>{filterCat=val;renderFilters();render();};row.appendChild(b);};
@@ -493,15 +565,14 @@ function fillCatSel(keep){
   if(keep&&CATS.includes(keep))s.value=keep;
 }
 
-// 테이블 렌더
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   let rows=DATA.filter(d=>(filterCat==='all'||d.cat===filterCat)&&(!q||d.model.toLowerCase().includes(q)));
   if(sortCol){rows=[...rows].sort((a,b)=>{if(sortCol==='price')return(a.price-b.price)*sortDir;const va=sortCol==='cat'?(a.cat||''):(a[sortCol]||'');const vb=sortCol==='cat'?(b.cat||''):(b[sortCol]||'');return va.localeCompare(vb,'ko')*sortDir;});}
   const tb=document.getElementById('tbody');tb.innerHTML='';
-  if(!rows.length){tb.innerHTML='<tr class="nores"><td colspan="6">검색 결과가 없어요 🔍</td></tr>';return;}
+  if(!rows.length){tb.innerHTML='<tr class="nores"><td colspan="5">검색 결과가 없어요 🔍</td></tr>';return;}
   rows.forEach((d,i)=>{const p=palOf(d.cat);const tr=document.createElement('tr');tr.style.animationDelay=(i*25)+'ms';
-    tr.innerHTML=`<td class="cnum">${String(i+1).padStart(2,'0')}</td><td class="cmodel">${d.model}</td><td><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td><td class="cstat"><span class="status-badge sbg-${DMAP[d.status]||'doff'}"><span class="dot ${DMAP[d.status]||'doff'}"></span>${d.status||'품절'}</span></td><td class="cprice">${d.status==='가격문의'?'<span style="color:#a78bfa;font-size:13px;font-family:\'Noto Sans KR\',sans-serif;font-weight:600">가격문의</span>':fmt(d.price)}</td><td class="cact"><button class="bedit" data-id="${d.id}" title="수정">✏️</button><button class="bdel" data-id="${d.id}" title="삭제">🗑️</button></td>`;
+    tr.innerHTML=`<td class="cnum">${String(i+1).padStart(2,'0')}</td><td class="cmodel">${d.model}</td><td class="cprice">${d.status==='가격문의'?'<span style="color:#a78bfa;font-size:13px;font-family:\'Noto Sans KR\',sans-serif;font-weight:600">가격문의</span>':fmt(d.price)}</td><td class="ccat"><span class="tag" style="color:${p.c};border-color:${p.b};background:${p.g}">${d.cat}</span></td><td class="cact"><button class="bedit" data-id="${d.id}" title="수정">✏️</button><button class="bdel" data-id="${d.id}" title="삭제">🗑️</button></td>`;
     tb.appendChild(tr);});
   tb.querySelectorAll('button.bedit').forEach(b=>b.onclick=()=>openEditM(Number(b.dataset.id)));
   tb.querySelectorAll('button.bdel').forEach(b=>b.onclick=()=>delItem(Number(b.dataset.id)));
@@ -514,16 +585,8 @@ function render(){
 document.querySelectorAll('thead th[data-sort]').forEach(th=>{th.onclick=()=>{const col=th.dataset.sort;sortDir=sortCol===col?-sortDir:1;sortCol=col;document.querySelectorAll('thead th').forEach(t=>{t.classList.remove('sorted');if(t.querySelector('.si'))t.querySelector('.si').textContent='↕';});th.classList.add('sorted');th.querySelector('.si').textContent=sortDir===1?'↑':'↓';render();};});
 document.getElementById('search').oninput=()=>render();
 
-// 모달
-const openM=id=>document.getElementById(id).classList.add('open');
-const closeM=id=>{document.getElementById(id).classList.remove('open');if(id==='m-item')editId=null;};
-window.closeM=closeM;
-['m-pw','m-item','m-upload'].forEach(id=>{document.getElementById(id).onclick=e=>{if(e.target.id===id)closeM(id);};});
-
-// 카테고리
 window.openCatM=function(){document.getElementById('cat-in').value='';document.getElementById('cat-err').textContent='';buildCatList();openM('m-cat');setTimeout(()=>document.getElementById('cat-in').focus(),100);};
 window.closeCatM=function(){closeM('m-cat');renderFilters();render();};
-document.getElementById('m-cat').onclick=e=>{if(e.target.id==='m-cat')window.closeCatM();};
 function buildCatList(){
   const list=document.getElementById('cat-list');list.innerHTML='';
   if(!CATS.length){list.innerHTML='<div style="color:var(--muted);font-size:12px;font-family:\'JetBrains Mono\',monospace;padding:8px 0">카테고리가 없습니다.</div>';return;}
@@ -534,7 +597,6 @@ window.addCat=async function(){const inp=document.getElementById('cat-in'),err=d
 document.getElementById('cat-in').onkeydown=e=>{if(e.key==='Enter')window.addCat();};
 async function delCat(i){const cat=CATS[i],used=DATA.filter(d=>d.cat===cat).length;if(!confirm(used>0?`'${cat}' 카테고리를 삭제하면 포함된 제품 ${used}개도 함께 삭제됩니다. 계속할까요?`:`'${cat}' 카테고리를 삭제할까요?`))return;if(used>0){DATA=DATA.filter(d=>d.cat!==cat);}CATS.splice(i,1);if(filterCat===cat)filterCat='all';await saveData();buildCatList();renderFilters();fillCatSel();render();toast(`'${cat}' 카테고리 및 제품 ${used}개 삭제 완료`);}
 
-// 가격 필드 토글 (가격문의 선택 시 비활성화)
 window.togglePriceField = function() {
   const stat = document.getElementById('f-status').value;
   const inp  = document.getElementById('f-price');
@@ -547,13 +609,11 @@ window.togglePriceField = function() {
   if (isInq) inp.value = '';
 };
 
-// 제품 추가/수정/삭제
 window.openAddM=function(){editId=null;document.getElementById('item-title').textContent='제품 추가';document.getElementById('f-model').value='';document.getElementById('f-price').value='';fillCatSel();document.getElementById('f-status').value='재고있음';window.togglePriceField();openM('m-item');};
 function openEditM(id){const d=DATA.find(x=>x.id===id);if(!d){toast('항목을 찾을 수 없습니다.','ng');return;}editId=id;document.getElementById('item-title').textContent='제품 수정';document.getElementById('f-model').value=d.model;document.getElementById('f-price').value=d.status==='가격문의'?'':d.price;fillCatSel(d.cat);document.getElementById('f-status').value=d.status;window.togglePriceField();openM('m-item');}
 window.saveItem=async function(){const model=document.getElementById('f-model').value.trim(),cat=document.getElementById('f-cat').value,stat=document.getElementById('f-status').value,price=parseInt(document.getElementById('f-price').value)||0;if(!model||(stat!=='가격문의'&&!price)){alert('모델명과 가격을 입력해주세요.');return;}if(editId!==null){const idx=DATA.findIndex(x=>x.id===editId);if(idx!==-1)DATA[idx]={id:editId,model,cat,price,status:stat};}else{DATA.push({id:_uid++,model,cat,price,status:stat});}await saveData();closeM('m-item');toast('저장 완료 ✓');};
 async function delItem(id){const idx=DATA.findIndex(x=>x.id===id);if(idx===-1){toast('항목을 찾을 수 없습니다.','ng');return;}if(!confirm(`'${DATA[idx].model}' 을(를) 삭제할까요?`))return;DATA.splice(idx,1);await saveData();toast('삭제 완료 ✓');}
 
-// 엑셀 업로드
 let _upRows=[];
 document.getElementById('xl-file').onchange=function(){
   const file=this.files[0];if(!file)return;this.value='';
@@ -586,17 +646,12 @@ window.confirmUpload=async function(){
   await saveData();closeM('m-upload');_upRows=[];renderFilters();fillCatSel();render();
 };
 
-/* ════════════════════════════════════════
-   주문 패널
-════════════════════════════════════════ */
 window.openOrderPanel=function(){
   document.getElementById('order-panel').classList.add('open');
   document.getElementById('o-overlay').classList.add('open');
   document.body.style.overflow='hidden';
-  // NEW 뱃지 숨기기
   document.getElementById('order-new-badge').style.display='none';
   document.getElementById('order-panel-btn').classList.remove('has-new');
-  // 본 주문들 기록
   ORDERS.forEach(o=>_seenOrders.add(o.id));
   renderOrders();
 };
@@ -675,7 +730,6 @@ window.renderOrders=function(){
     wrap.appendChild(card);
   });
 
-  // 상태 변경
   wrap.querySelectorAll('.ostatus-sel').forEach(sel=>{
     sel.onchange=async()=>{
       const id=sel.dataset.id,status=sel.value;
@@ -685,7 +739,6 @@ window.renderOrders=function(){
       }catch(e){toast('상태 변경 실패: '+e.message,'ng');}
     };
   });
-  // 주문 삭제
   wrap.querySelectorAll('.odel-btn').forEach(btn=>{
     btn.onclick=async()=>{
       if(!confirm('이 주문을 삭제하시겠습니까?'))return;
@@ -698,10 +751,6 @@ window.renderOrders=function(){
   });
 };
 
-/* ═══════════════════════════════
-   Firestore 실시간 구독
-═══════════════════════════════ */
-// 가격표 구독
 onSnapshot(REF_DATA,snap=>{
   if(snap.exists()){const d=snap.data();DATA=d.items||DEF_DATA.map(x=>({...x}));CATS=d.cats||[...DEF_CATS];}
   else{DATA=DEF_DATA.map(x=>({...x}));CATS=[...DEF_CATS];}
@@ -710,19 +759,14 @@ onSnapshot(REF_DATA,snap=>{
   document.getElementById('loading').classList.add('hide');
 });
 
-// 주문 구독
 onSnapshot(ORDERS_COL,snap=>{
   const prev=new Set(ORDERS.map(o=>o.id));
   ORDERS=[];
   snap.forEach(d=>ORDERS.push({id:d.id,...d.data()}));
-
-  // 패널이 열려있으면 즉시 갱신
   if(document.getElementById('order-panel').classList.contains('open')){
     ORDERS.forEach(o=>_seenOrders.add(o.id));
     renderOrders();
   }
-
-  // 새 주문 알림 (최초 로드 이후부터)
   if(_ordersLoaded){
     const newOnes=ORDERS.filter(o=>!prev.has(o.id));
     if(newOnes.length){
