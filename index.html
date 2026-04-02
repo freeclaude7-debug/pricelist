@@ -64,7 +64,11 @@
 
   .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 48px) 80px; }
 
-  header { padding: clamp(48px, 8vw, 96px) 0 clamp(32px, 5vw, 64px); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+  header { 
+    padding: clamp(48px, 8vw, 96px) 0 clamp(32px, 5vw, 64px); 
+    display: flex; flex-direction: column; 
+    align-items: center; text-align: center; gap: 16px; 
+  }
   .badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: var(--tag-bg); border: 1px solid rgba(0, 112, 243, 0.2); padding: 6px 14px; border-radius: 100px; width: fit-content; }
   h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -.03em; background: linear-gradient(135deg, #0f172a 30%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .subtitle { font-size: 15px; color: var(--text2); letter-spacing: .01em; font-weight: 400; max-width: 600px; line-height: 1.6; }
@@ -75,7 +79,6 @@
   .stat-l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
   .stat-v { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--accent); }
 
-  /* ─── 검색 + 필터 ─── */
   .controls { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; align-items: center; width: 100%; }
   .row1 { width: 100%; max-width: 600px; display: flex; gap: 12px; }
   .swrap { flex: 1; position: relative; }
@@ -210,14 +213,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-let DATA = [], CART = [];
+let DATA = [], MASTER_CATS = [], CART = []; // MASTER_CATS 변수 추가
 let filterCat = 'all';
 
-// 카테고리 필터 버튼 렌더링
+// 카테고리 필터 버튼 렌더링 수정
 function renderFilters() {
   const row = document.getElementById('frow');
-  // 고유 카테고리 추출
-  const cats = ['all', ...new Set(DATA.map(d => d.cat).filter(Boolean))];
+  
+  // 아이템에서 추출하는 대신 관리자 페이지에서 받은 MASTER_CATS 사용
+  const cats = ['all', ...MASTER_CATS];
   
   row.innerHTML = cats.map(c => `
     <button class="fbtn ${filterCat === c ? 'on' : ''}" onclick="setFilter('${c}')">
@@ -275,8 +279,10 @@ window.closeCart = () => document.getElementById('cart-panel').classList.remove(
 
 onSnapshot(doc(db, 'pricelist', 'data'), snap => {
   if (snap.exists()) {
-    DATA = snap.data().items || [];
-    renderFilters();
+    const d = snap.data();
+    DATA = d.items || [];
+    MASTER_CATS = d.cats || []; // 관리자 페이지에서 업데이트한 카테고리 목록을 가져옴
+    renderFilters(); // 카테고리 버튼 먼저 렌더링
     render();
   }
   document.getElementById('loading').classList.add('hide');
